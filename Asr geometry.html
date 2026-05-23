@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Imaginarium · Geometrical Discussion</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+    
+    :root {
+        --deep: #030108;
+        --teal: #00e5cc;
+        --rose: #ff6b9d;
+        --amber: #ffbe50;
+        --void: rgba(6, 3, 14, 0.85);
+        --panel: rgba(20, 15, 30, 0.9);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+        background: var(--deep);
+        font-family: 'Space Mono', monospace;
+        color: white;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        height: 100vh; width: 100vw;
+    }
+
+    /* Top HUD */
+    header {
+        padding: 15px;
+        text-align: center;
+        background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+        z-index: 10;
+    }
+
+    h1 {
+        font-family: 'Cinzel Decorative', serif;
+        color: var(--amber);
+        font-size: 1.2rem;
+        letter-spacing: 0.15em;
+    }
+
+    /* Temperature Gauge */
+    #temp-container {
+        width: 90%; max-width: 400px;
+        height: 8px;
+        background: #222;
+        margin: 10px auto 0;
+        border-radius: 4px;
+        border: 1px solid rgba(255,255,255,0.2);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    #temp-fill {
+        height: 100%; width: 20%;
+        background: linear-gradient(90deg, var(--teal), var(--amber), var(--rose));
+        transition: width 0.5s ease-out, background 0.5s ease;
+    }
+
+    #temp-label {
+        font-size: 0.6rem;
+        color: rgba(255,255,255,0.6);
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    /* Canvas Area */
+    #canvas-container {
+        flex: 1; position: relative; width: 100%;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* Floating Machine Notes */
+    .machine-note {
+        position: absolute;
+        background: rgba(0, 229, 204, 0.15);
+        border-left: 2px solid var(--teal);
+        padding: 5px 8px;
+        font-size: 0.65rem;
+        color: var(--teal);
+        pointer-events: none;
+        animation: fadeUp 3s forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeUp {
+        0% { transform: translateY(10px); opacity: 0; }
+        10% { transform: translateY(0); opacity: 1; }
+        80% { transform: translateY(-10px); opacity: 1; }
+        100% { transform: translateY(-20px); opacity: 0; }
+    }
+
+    /* Controls Dashboard */
+    #dashboard {
+        background: var(--panel);
+        border-top: 1px solid rgba(0, 229, 204, 0.3);
+        padding: 15px;
+        display: flex; flex-direction: column; align-items: center;
+        z-index: 10; padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    #transcript {
+        width: 100%; height: 60px;
+        font-size: 0.75rem; color: #aaa;
+        overflow-y: auto; text-align: center;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+        padding-bottom: 5px;
+    }
+
+    .btn-row {
+        display: flex; gap: 10px; width: 100%; justify-content: space-around;
+    }
+
+    .btn {
+        background: transparent;
+        border: 1px solid var(--teal);
+        color: var(--teal);
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: 0.3s;
+    }
+
+    .btn.active { background: rgba(0, 229, 204, 0.2); box-shadow: 0 0 10px rgba(0, 229, 204, 0.4); }
+    .btn:active { transform: scale(0.95); }
+
+    /* Mediator Intervention Modal */
+    #mediator-modal {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(3, 1, 8, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 20px; text-align: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.4s;
+    }
+    
+    #mediator-modal.show { opacity: 1; pointer-events: all; }
+
+    .modal-title {
+        font-family: 'Cinzel Decorative'; color: var(--rose);
+        font-size: 1.5rem; margin-bottom: 15px;
+    }
+
+    .modal-text {
+        color: #e0e0e0; font-size: 0.9rem; line-height: 1.6;
+        max-width: 400px; margin-bottom: 25px;
+    }
+
+    .modal-btn {
+        background: var(--amber); color: #000;
+        border: none; padding: 12px 25px; font-weight: bold;
+        border-radius: 5px; font-family: 'Space Mono';
+    }
+
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Imaginarium ASR</h1>
+    <div id="temp-container"><div id="temp-fill"></div></div>
+    <div id="temp-label">Chemistry: Neutral</div>
+</header>
+
+<div id="canvas-container">
+    <canvas id="map-canvas"></canvas>
+</div>
+
+<div id="dashboard">
+    <div id="transcript">Awaiting vocal input...</div>
+    <div class="btn-row">
+        <button class="btn" id="mic-btn">🎙️ Start Listening</button>
+        <button class="btn" id="manual-node-btn">+ Add Note</button>
+    </div>
+</div>
+
+<div id="mediator-modal">
+    <div class="modal-title">Geometrical Interruption</div>
+    <div class="modal-text" id="modal-message">
+        Please hold it right there. This statement will trigger unpleasant feelings. Remember we all have human feelings and can get through this together happily.
+    </div>
+    <button class="modal-btn" id="resume-btn">Acknowledge & Continue</button>
+</div>
+
+<script>
+    // --- Canvas & Biological Circuit Nodes ---
+    const canvas = document.getElementById('map-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    let nodes = [];
+    
+    function resize() { W = canvas.width = document.getElementById('canvas-container').clientWidth; H = canvas.height = document.getElementById('canvas-container').clientHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        
+        // Draw connections
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                if (Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y) < 150) {
+                    ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
+                }
+            }
+        }
+
+        // Draw Nodes
+        nodes.forEach(n => {
+            n.x += n.vx; n.y += n.vy;
+            // Bounce off walls
+            if(n.x < 10 || n.x > W-10) n.vx *= -1;
+            if(n.y < 10 || n.y > H-10) n.vy *= -1;
+
+            ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+            ctx.fillStyle = n.color;
+            ctx.shadowBlur = 15; ctx.shadowColor = n.color;
+            ctx.fill(); ctx.shadowBlur = 0;
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    function addNode(sentiment) {
+        let color = '#00e5cc'; // Neutral/Positive
+        if (sentiment === 'hot') color = '#ff6b9d';
+        else if (sentiment === 'warm') color = '#ffbe50';
+        
+        nodes.push({
+            x: W/2 + (Math.random()-0.5)*50, 
+            y: H/2 + (Math.random()-0.5)*50,
+            vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5,
+            r: Math.random() * 5 + 4, color: color
+        });
+    }
+
+    // --- Active Listening & Web Speech API ---
+    const micBtn = document.getElementById('mic-btn');
+    const transcriptDiv = document.getElementById('transcript');
+    const tempFill = document.getElementById('temp-fill');
+    const tempLabel = document.getElementById('temp-label');
+    const mediatorModal = document.getElementById('mediator-modal');
+    
+    let recognition;
+    let isListening = false;
+    let temperature = 20; // 0 to 100
+
+    // Check browser support
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (window.SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+            isListening = true;
+            micBtn.classList.add('active');
+            micBtn.innerHTML = "🔴 Listening...";
+        };
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                    analyzeChemistry(event.results[i][0].transcript.toLowerCase());
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            
+            transcriptDiv.innerHTML = finalTranscript ? `<strong style="color:white">${finalTranscript}</strong>` : interimTranscript;
+            if(finalTranscript) addNode(temperature > 60 ? 'hot' : 'neutral');
+        };
+
+        recognition.onerror = (event) => { console.error("Speech error: ", event.error); };
+        recognition.onend = () => { if(isListening) recognition.start(); }; // Auto-restart if not manually stopped
+    } else {
+        transcriptDiv.innerHTML = "Web Speech API not supported in this browser. Please use Chrome/Safari on mobile.";
+    }
+
+    micBtn.addEventListener('click', () => {
+        if(!recognition) return;
+        if (isListening) {
+            isListening = false;
+            recognition.stop();
+            micBtn.classList.remove('active');
+            micBtn.innerHTML = "🎙️ Start Listening";
+        } else {
+            recognition.start();
+        }
+    });
+
+    // --- Chemistry Analysis & Intervention ---
+    const frictionWords = ["always", "never", "fault", "wrong", "ridiculous", "blame", "you make me"];
+    const harmonyWords = ["understand", "feel", "sorry", "grace", "forgive", "help", "together"];
+
+    function analyzeChemistry(text) {
+        let heated = false;
+        
+        frictionWords.forEach(word => {
+            if(text.includes(word)) { temperature += 25; heated = true; }
+        });
+        
+        harmonyWords.forEach(word => {
+            if(text.includes(word)) { temperature -= 15; }
+        });
+
+        // Clamp temp
+        temperature = Math.max(10, Math.min(100, temperature));
+        tempFill.style.width = temperature + '%';
+        
+        if (temperature < 40) { tempLabel.innerText = "Chemistry: Neutral / Calm"; tempFill.style.background = 'var(--teal)'; }
+        else if (temperature < 75) { tempLabel.innerText = "Chemistry: Warm / Alert"; tempFill.style.background = 'var(--amber)'; }
+        else { tempLabel.innerText = "Chemistry: Hot / Friction"; tempFill.style.background = 'var(--rose)'; }
+
+        if (heated) showMachineNote("Friction ghost detected.");
+
+        if (temperature >= 80) {
+            triggerMediator("Hold it right there. The conversational math is pointing toward friction. Let's take a breath, assume positive intent, and re-frame the statement for inclusivity and healthiness.");
+        }
+    }
+
+    function showMachineNote(msg) {
+        const note = document.createElement('div');
+        note.className = 'machine-note';
+        note.innerText = msg;
+        note.style.left = (Math.random() * 60 + 20) + '%';
+        note.style.top = (Math.random() * 40 + 40) + '%';
+        document.getElementById('canvas-container').appendChild(note);
+        setTimeout(() => note.remove(), 3000);
+    }
+
+    function triggerMediator(customMessage) {
+        if(isListening) { recognition.stop(); isListening = false; }
+        document.getElementById('modal-message').innerText = customMessage;
+        mediatorModal.classList.add('show');
+        micBtn.classList.remove('active');
+        micBtn.innerHTML = "🎙️ Start Listening";
+        temperature = 40; // Reset temp after intervention
+        tempFill.style.width = '40%';
+        tempLabel.innerText = "Chemistry: Neutral / Reset";
+    }
+
+    document.getElementById('resume-btn').addEventListener('click', () => {
+        mediatorModal.classList.remove('show');
+    });
+
+    document.getElementById('manual-node-btn').addEventListener('click', () => {
+        addNode('warm');
+        showMachineNote("Manual insight added.");
+    });
+</script>
+</body>
+</html>
