@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8,277 +8,362 @@
     @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
     
     :root {
-        --deep: #030108; --teal: #00e5cc; --rose: #ff6b9d; --amber: #ffbe50;
-        --void: rgba(6, 3, 14, 0.85); --panel: rgba(20, 15, 30, 0.95);
+        --deep: #030108;
+        --teal: #00e5cc;
+        --rose: #ff6b9d;
+        --amber: #ffbe50;
+        --void: rgba(6, 3, 14, 0.85);
+        --panel: rgba(20, 15, 30, 0.9);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-        background: var(--deep); font-family: 'Space Mono', monospace;
-        color: white; overflow: hidden; display: flex; flex-direction: column;
+        background: var(--deep);
+        font-family: 'Space Mono', monospace;
+        color: white;
+        overflow: hidden;
+        display: flex; flex-direction: column;
         height: 100vh; width: 100vw;
     }
 
-    /* HUD */
-    header { padding: 15px; text-align: center; background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%); z-index: 10; }
-    h1 { font-family: 'Cinzel Decorative', serif; color: var(--amber); font-size: 1.1rem; letter-spacing: 0.15em; }
+    /* Top HUD */
+    header {
+        padding: 15px;
+        text-align: center;
+        background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+        z-index: 10;
+    }
+
+    h1 {
+        font-family: 'Cinzel Decorative', serif;
+        color: var(--amber);
+        font-size: 1.2rem;
+        letter-spacing: 0.15em;
+    }
+
+    /* Temperature Gauge */
+    #temp-container {
+        width: 90%; max-width: 400px;
+        height: 8px;
+        background: #222;
+        margin: 10px auto 0;
+        border-radius: 4px;
+        border: 1px solid rgba(255,255,255,0.2);
+        overflow: hidden;
+        position: relative;
+    }
     
-    #temp-container { width: 90%; height: 8px; background: #222; margin: 10px auto 0; border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
-    #temp-fill { height: 100%; width: 30%; background: var(--teal); transition: width 0.5s ease-out, background 0.5s ease; }
-    #temp-label { font-size: 0.6rem; color: rgba(255,255,255,0.7); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.1em; }
+    #temp-fill {
+        height: 100%; width: 20%;
+        background: linear-gradient(90deg, var(--teal), var(--amber), var(--rose));
+        transition: width 0.5s ease-out, background 0.5s ease;
+    }
 
-    /* Main Neural Network Canvas */
-    #canvas-container { flex: 1; position: relative; width: 100%; z-index: 1; }
-    #map-canvas { display: block; width: 100%; height: 100%; }
+    #temp-label {
+        font-size: 0.6rem;
+        color: rgba(255,255,255,0.6);
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
 
-    /* Machine Notes */
+    /* Canvas Area */
+    #canvas-container {
+        flex: 1; position: relative; width: 100%;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* Floating Machine Notes */
     .machine-note {
-        position: absolute; background: rgba(0, 229, 204, 0.1); border-left: 2px solid var(--amber);
-        padding: 6px 10px; font-size: 0.65rem; color: #fff; pointer-events: none;
-        animation: dropIn 0.5s forwards, fadeOut 4s forwards 6s; opacity: 0; max-width: 200px;
+        position: absolute;
+        background: rgba(0, 229, 204, 0.15);
+        border-left: 2px solid var(--teal);
+        padding: 5px 8px;
+        font-size: 0.65rem;
+        color: var(--teal);
+        pointer-events: none;
+        animation: fadeUp 3s forwards;
+        opacity: 0;
     }
-    @keyframes dropIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    @keyframes fadeOut { to { opacity: 0; } }
 
-    /* Bottom Dashboard */
-    #dashboard { background: var(--panel); border-top: 1px solid rgba(0, 229, 204, 0.3); padding: 15px; display: flex; flex-direction: column; align-items: center; z-index: 10; padding-bottom: env(safe-area-inset-bottom, 20px); }
-    #transcript { width: 100%; height: 60px; font-size: 0.75rem; color: #aaa; overflow-y: auto; text-align: center; margin-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 5px; }
-    .btn-row { display: flex; gap: 10px; width: 100%; justify-content: space-around; }
-    .btn { background: transparent; border: 1px solid var(--teal); color: var(--teal); padding: 10px 15px; border-radius: 8px; font-family: inherit; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+    @keyframes fadeUp {
+        0% { transform: translateY(10px); opacity: 0; }
+        10% { transform: translateY(0); opacity: 1; }
+        80% { transform: translateY(-10px); opacity: 1; }
+        100% { transform: translateY(-20px); opacity: 0; }
+    }
+
+    /* Controls Dashboard */
+    #dashboard {
+        background: var(--panel);
+        border-top: 1px solid rgba(0, 229, 204, 0.3);
+        padding: 15px;
+        display: flex; flex-direction: column; align-items: center;
+        z-index: 10; padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    #transcript {
+        width: 100%; height: 60px;
+        font-size: 0.75rem; color: #aaa;
+        overflow-y: auto; text-align: center;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+        padding-bottom: 5px;
+    }
+
+    .btn-row {
+        display: flex; gap: 10px; width: 100%; justify-content: space-around;
+    }
+
+    .btn {
+        background: transparent;
+        border: 1px solid var(--teal);
+        color: var(--teal);
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: 0.3s;
+    }
+
     .btn.active { background: rgba(0, 229, 204, 0.2); box-shadow: 0 0 10px rgba(0, 229, 204, 0.4); }
+    .btn:active { transform: scale(0.95); }
 
-    /* Dodecahedron Bubble */
-    #shape-bubble {
-        position: absolute; bottom: 120px; right: 20px; width: 70px; height: 70px;
-        background: radial-gradient(circle at center, rgba(0,229,204,0.1), rgba(0,0,0,0.8));
-        border: 1px solid var(--teal); border-radius: 50%; z-index: 50;
-        box-shadow: 0 0 15px rgba(0,229,204,0.3); cursor: pointer; overflow: hidden;
-    }
-    #bubble-canvas { width: 100%; height: 100%; display: block; }
-
-    /* Expanded 3D Overlay */
-    #shape-overlay {
+    /* Mediator Intervention Modal */
+    #mediator-modal {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(3, 1, 8, 0.85); backdrop-filter: blur(5px);
-        z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+        background: rgba(3, 1, 8, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 20px; text-align: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.4s;
     }
-    #shape-overlay.show { opacity: 1; pointer-events: all; }
-    #overlay-canvas { width: 100%; height: 100%; display: block; }
-    #close-instruction {
-        position: absolute; bottom: 40px; width: 100%; text-align: center;
-        color: #fff; font-size: 0.9rem; font-weight: bold; letter-spacing: 0.15em;
-        text-shadow: 0 0 10px rgba(255,255,255,0.8); pointer-events: none;
+    
+    #mediator-modal.show { opacity: 1; pointer-events: all; }
+
+    .modal-title {
+        font-family: 'Cinzel Decorative'; color: var(--rose);
+        font-size: 1.5rem; margin-bottom: 15px;
     }
+
+    .modal-text {
+        color: #e0e0e0; font-size: 0.9rem; line-height: 1.6;
+        max-width: 400px; margin-bottom: 25px;
+    }
+
+    .modal-btn {
+        background: var(--amber); color: #000;
+        border: none; padding: 12px 25px; font-weight: bold;
+        border-radius: 5px; font-family: 'Space Mono';
+    }
+
 </style>
 </head>
 <body>
 
 <header>
-    <h1>Imaginarium</h1>
+    <h1>Imaginarium ASR</h1>
     <div id="temp-container"><div id="temp-fill"></div></div>
-    <div id="temp-label">Generolovicity: Analyzing</div>
+    <div id="temp-label">Chemistry: Neutral</div>
 </header>
 
 <div id="canvas-container">
     <canvas id="map-canvas"></canvas>
-    
-    <div id="shape-bubble">
-        <canvas id="bubble-canvas"></canvas>
-    </div>
 </div>
 
 <div id="dashboard">
     <div id="transcript">Awaiting vocal input...</div>
     <div class="btn-row">
-        <button class="btn" id="mic-btn">🎙️ Listen</button>
-        <button class="btn" id="note-btn">Drop Insight</button>
+        <button class="btn" id="mic-btn">🎙️ Start Listening</button>
+        <button class="btn" id="manual-node-btn">+ Add Note</button>
     </div>
 </div>
 
-<div id="shape-overlay">
-    <canvas id="overlay-canvas"></canvas>
-    <div id="close-instruction">TRIPLE TAP TO CLOSE</div>
+<div id="mediator-modal">
+    <div class="modal-title">Geometrical Interruption</div>
+    <div class="modal-text" id="modal-message">
+        Please hold it right there. This statement will trigger unpleasant feelings. Remember we all have human feelings and can get through this together happily.
+    </div>
+    <button class="modal-btn" id="resume-btn">Acknowledge & Continue</button>
 </div>
 
 <script>
-    // --- Neural Network Logic ---
-    const mapCanvas = document.getElementById('map-canvas');
-    const mCtx = mapCanvas.getContext('2d');
-    let W = window.innerWidth, H = window.innerHeight;
+    // --- Canvas & Biological Circuit Nodes ---
+    const canvas = document.getElementById('map-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
     let nodes = [];
     
-    function resizeMap() { W = mapCanvas.width = document.getElementById('canvas-container').clientWidth; H = mapCanvas.height = document.getElementById('canvas-container').clientHeight; }
-    window.addEventListener('resize', resizeMap); resizeMap();
+    function resize() { W = canvas.width = document.getElementById('canvas-container').clientWidth; H = canvas.height = document.getElementById('canvas-container').clientHeight; }
+    window.addEventListener('resize', resize); resize();
 
-    function drawMap() {
-        mCtx.clearRect(0, 0, W, H);
-        mCtx.strokeStyle = 'rgba(255,255,255,0.08)'; mCtx.lineWidth = 1;
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        
+        // Draw connections
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
         for (let i = 0; i < nodes.length; i++) {
             for (let j = i + 1; j < nodes.length; j++) {
-                if (Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y) < 120) {
-                    mCtx.beginPath(); mCtx.moveTo(nodes[i].x, nodes[i].y); mCtx.lineTo(nodes[j].x, nodes[j].y); mCtx.stroke();
+                if (Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y) < 150) {
+                    ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke();
                 }
             }
         }
+
+        // Draw Nodes
         nodes.forEach(n => {
             n.x += n.vx; n.y += n.vy;
-            if(n.x < 10 || n.x > W-10) n.vx *= -1; if(n.y < 10 || n.y > H-10) n.vy *= -1;
-            mCtx.beginPath(); mCtx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-            mCtx.fillStyle = n.color; mCtx.shadowBlur = 10; mCtx.shadowColor = n.color;
-            mCtx.fill(); mCtx.shadowBlur = 0;
-        });
-        requestAnimationFrame(drawMap);
-    }
-    drawMap();
+            // Bounce off walls
+            if(n.x < 10 || n.x > W-10) n.vx *= -1;
+            if(n.y < 10 || n.y > H-10) n.vy *= -1;
 
-    // --- Web Speech API & Temperature ---
+            ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+            ctx.fillStyle = n.color;
+            ctx.shadowBlur = 15; ctx.shadowColor = n.color;
+            ctx.fill(); ctx.shadowBlur = 0;
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    function addNode(sentiment) {
+        let color = '#00e5cc'; // Neutral/Positive
+        if (sentiment === 'hot') color = '#ff6b9d';
+        else if (sentiment === 'warm') color = '#ffbe50';
+        
+        nodes.push({
+            x: W/2 + (Math.random()-0.5)*50, 
+            y: H/2 + (Math.random()-0.5)*50,
+            vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5,
+            r: Math.random() * 5 + 4, color: color
+        });
+    }
+
+    // --- Active Listening & Web Speech API ---
     const micBtn = document.getElementById('mic-btn');
-    const noteBtn = document.getElementById('note-btn');
     const transcriptDiv = document.getElementById('transcript');
     const tempFill = document.getElementById('temp-fill');
     const tempLabel = document.getElementById('temp-label');
+    const mediatorModal = document.getElementById('mediator-modal');
     
-    let recognition, isListening = false, temperature = 30;
+    let recognition;
+    let isListening = false;
+    let temperature = 20; // 0 to 100
+
+    // Check browser support
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (window.SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.continuous = false; // Mobile friendly fix: restart manually on end
+        recognition.continuous = true;
         recognition.interimResults = true;
 
-        recognition.onstart = () => { isListening = true; micBtn.classList.add('active'); micBtn.innerHTML = "🔴 Active"; };
-        
+        recognition.onstart = () => {
+            isListening = true;
+            micBtn.classList.add('active');
+            micBtn.innerHTML = "🔴 Listening...";
+        };
+
         recognition.onresult = (event) => {
+            let interimTranscript = '';
             let finalTranscript = '';
+
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
                     analyzeChemistry(event.results[i][0].transcript.toLowerCase());
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
                 }
             }
-            if(finalTranscript) {
-                transcriptDiv.innerHTML = `<strong style="color:white">${finalTranscript}</strong>`;
-                addNeuralNode();
-            }
+            
+            transcriptDiv.innerHTML = finalTranscript ? `<strong style="color:white">${finalTranscript}</strong>` : interimTranscript;
+            if(finalTranscript) addNode(temperature > 60 ? 'hot' : 'neutral');
         };
 
-        recognition.onend = () => { if(isListening) { setTimeout(() => recognition.start(), 200); } };
+        recognition.onerror = (event) => { console.error("Speech error: ", event.error); };
+        recognition.onend = () => { if(isListening) recognition.start(); }; // Auto-restart if not manually stopped
+    } else {
+        transcriptDiv.innerHTML = "Web Speech API not supported in this browser. Please use Chrome/Safari on mobile.";
     }
 
     micBtn.addEventListener('click', () => {
         if(!recognition) return;
-        if(isListening) { isListening = false; recognition.stop(); micBtn.classList.remove('active'); micBtn.innerHTML = "🎙️ Listen"; } 
-        else { recognition.start(); }
+        if (isListening) {
+            isListening = false;
+            recognition.stop();
+            micBtn.classList.remove('active');
+            micBtn.innerHTML = "🎙️ Start Listening";
+        } else {
+            recognition.start();
+        }
     });
 
-    const frictionWords = ["always", "never", "fault", "you", "wrong", "but"];
-    const harmonyWords = ["understand", "feel", "we", "together", "grace", "forgive"];
+    // --- Chemistry Analysis & Intervention ---
+    const frictionWords = ["always", "never", "fault", "wrong", "ridiculous", "blame", "you make me"];
+    const harmonyWords = ["understand", "feel", "sorry", "grace", "forgive", "help", "together"];
 
     function analyzeChemistry(text) {
-        frictionWords.forEach(w => { if(text.includes(w)) temperature += 15; });
-        harmonyWords.forEach(w => { if(text.includes(w)) temperature -= 20; });
+        let heated = false;
+        
+        frictionWords.forEach(word => {
+            if(text.includes(word)) { temperature += 25; heated = true; }
+        });
+        
+        harmonyWords.forEach(word => {
+            if(text.includes(word)) { temperature -= 15; }
+        });
+
+        // Clamp temp
         temperature = Math.max(10, Math.min(100, temperature));
-        
         tempFill.style.width = temperature + '%';
-        if (temperature < 40) { tempLabel.innerText = "State: Fluid / Generative"; tempFill.style.background = 'var(--teal)'; }
-        else if (temperature < 70) { tempLabel.innerText = "State: Wary / Assessing"; tempFill.style.background = 'var(--amber)'; }
-        else { tempLabel.innerText = "State: Rigid / Friction"; tempFill.style.background = 'var(--rose)'; }
-    }
-
-    function addNeuralNode() {
-        let color = temperature < 40 ? '#00e5cc' : (temperature < 70 ? '#ffbe50' : '#ff6b9d');
-        nodes.push({ x: W/2, y: H/2, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, r: Math.random()*4+3, color: color });
-    }
-
-    noteBtn.addEventListener('click', () => {
-        // AI Discretion Logic based on temperature
-        let msg = "";
-        if (temperature < 40) msg = "Machine Note: Generolovicity is high. Love physics structurally sound.";
-        else if (temperature < 70) msg = "Machine Note: Caution. Contextual word traps present. Seek understanding.";
-        else msg = "Machine Note: High friction. Ghost of fear blocking node. Re-orient to inclusivity.";
         
+        if (temperature < 40) { tempLabel.innerText = "Chemistry: Neutral / Calm"; tempFill.style.background = 'var(--teal)'; }
+        else if (temperature < 75) { tempLabel.innerText = "Chemistry: Warm / Alert"; tempFill.style.background = 'var(--amber)'; }
+        else { tempLabel.innerText = "Chemistry: Hot / Friction"; tempFill.style.background = 'var(--rose)'; }
+
+        if (heated) showMachineNote("Friction ghost detected.");
+
+        if (temperature >= 80) {
+            triggerMediator("Hold it right there. The conversational math is pointing toward friction. Let's take a breath, assume positive intent, and re-frame the statement for inclusivity and healthiness.");
+        }
+    }
+
+    function showMachineNote(msg) {
         const note = document.createElement('div');
-        note.className = 'machine-note'; note.innerText = msg;
-        note.style.left = (Math.random() * 50 + 10) + '%'; note.style.top = (Math.random() * 40 + 20) + '%';
+        note.className = 'machine-note';
+        note.innerText = msg;
+        note.style.left = (Math.random() * 60 + 20) + '%';
+        note.style.top = (Math.random() * 40 + 40) + '%';
         document.getElementById('canvas-container').appendChild(note);
-        addNeuralNode(); // Drop a node representing the intervention
+        setTimeout(() => note.remove(), 3000);
+    }
+
+    function triggerMediator(customMessage) {
+        if(isListening) { recognition.stop(); isListening = false; }
+        document.getElementById('modal-message').innerText = customMessage;
+        mediatorModal.classList.add('show');
+        micBtn.classList.remove('active');
+        micBtn.innerHTML = "🎙️ Start Listening";
+        temperature = 40; // Reset temp after intervention
+        tempFill.style.width = '40%';
+        tempLabel.innerText = "Chemistry: Neutral / Reset";
+    }
+
+    document.getElementById('resume-btn').addEventListener('click', () => {
+        mediatorModal.classList.remove('show');
     });
 
-    // --- 3D Dodecahedron & Tetrahedron Logic ---
-    const PHI = (1 + Math.sqrt(5)) / 2;
-    const dodeca = [[1,1,1],[1,1,-1],[1,-1,1],[1,-1,-1],[-1,1,1],[-1,1,-1],[-1,-1,1],[-1,-1,-1],[0,1/PHI,PHI],[0,-1/PHI,PHI],[0,1/PHI,-PHI],[0,-1/PHI,-PHI],[1/PHI,PHI,0],[-1/PHI,PHI,0],[1/PHI,-PHI,0],[-1/PHI,-PHI,0],[PHI,0,1/PHI],[PHI,0,-1/PHI],[-PHI,0,1/PHI],[-PHI,0,-1/PHI]];
-    const tetra = [[1.5,1.5,1.5], [-1.5,-1.5,1.5], [-1.5,1.5,-1.5], [1.5,-1.5,-1.5]];
-
-    let rotX = 0, rotY = 0;
-    
-    function draw3D(ctx3D, width, height, isExpanded) {
-        ctx3D.clearRect(0, 0, width, height);
-        rotY += isExpanded ? 0.005 : 0.02; rotX += isExpanded ? 0.002 : 0.01;
-
-        const scale = isExpanded ? Math.min(width, height) * 0.4 : width * 0.3;
-        
-        const project = (v) => {
-            let x = v[0]*Math.cos(rotY) - v[2]*Math.sin(rotY);
-            let z = v[0]*Math.sin(rotY) + v[2]*Math.cos(rotY);
-            let y = v[1]*Math.cos(rotX) - z*Math.sin(rotX);
-            z = v[1]*Math.sin(rotX) + z*Math.cos(rotX);
-            let d = z + 5; let f = scale / d;
-            return [width/2 + x*f, height/2 + y*f];
-        };
-
-        // Draw Tetra (Inner Truth)
-        ctx3D.strokeStyle = 'rgba(0, 229, 204, 0.9)'; ctx3D.lineWidth = isExpanded ? 2 : 1;
-        const tPts = tetra.map(project);
-        const tEdges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
-        ctx3D.beginPath(); tEdges.forEach(e => { ctx3D.moveTo(tPts[e[0]][0], tPts[e[0]][1]); ctx3D.lineTo(tPts[e[1]][0], tPts[e[1]][1]); }); ctx3D.stroke();
-
-        // Draw Dodeca (Outer Fear)
-        ctx3D.strokeStyle = isExpanded ? 'rgba(255, 190, 80, 0.4)' : 'rgba(255, 107, 157, 0.4)';
-        const dPts = dodeca.map(project);
-        ctx3D.beginPath();
-        for(let i=0; i<dPts.length; i++) {
-            for(let j=i+1; j<dPts.length; j++) {
-                let dx = dodeca[i][0]-dodeca[j][0], dy = dodeca[i][1]-dodeca[j][1], dz = dodeca[i][2]-dodeca[j][2];
-                if(Math.sqrt(dx*dx+dy*dy+dz*dz) < 2.1) { ctx3D.moveTo(dPts[i][0], dPts[i][1]); ctx3D.lineTo(dPts[j][0], dPts[j][1]); }
-            }
-        }
-        ctx3D.stroke();
-    }
-
-    // Render loops for both canvases
-    const bCanvas = document.getElementById('bubble-canvas'); const bCtx = bCanvas.getContext('2d');
-    const oCanvas = document.getElementById('overlay-canvas'); const oCtx = oCanvas.getContext('2d');
-    
-    function resize3D() { 
-        bCanvas.width = 70; bCanvas.height = 70;
-        oCanvas.width = window.innerWidth; oCanvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize3D); resize3D();
-
-    function animate3D() {
-        draw3D(bCtx, bCanvas.width, bCanvas.height, false);
-        if(document.getElementById('shape-overlay').classList.contains('show')) {
-            draw3D(oCtx, oCanvas.width, oCanvas.height, true);
-        }
-        requestAnimationFrame(animate3D);
-    }
-    animate3D();
-
-    // --- Interaction Logic (Triple Tap) ---
-    const bubble = document.getElementById('shape-bubble');
-    const overlay = document.getElementById('shape-overlay');
-    let tapCount = 0; let tapTimeout;
-
-    bubble.addEventListener('click', () => { overlay.classList.add('show'); });
-
-    overlay.addEventListener('click', (e) => {
-        tapCount++;
-        clearTimeout(tapTimeout);
-        if(tapCount >= 3) { overlay.classList.remove('show'); tapCount = 0; } 
-        else { tapTimeout = setTimeout(() => { tapCount = 0; }, 400); }
+    document.getElementById('manual-node-btn').addEventListener('click', () => {
+        addNode('warm');
+        showMachineNote("Manual insight added.");
     });
-
 </script>
 </body>
 </html>
